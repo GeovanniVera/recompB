@@ -1,0 +1,349 @@
+<main class="app-shell">
+  <header class="page-head">
+    <div>
+      <h1 class="page-head__title">Hoy</h1>
+      <p class="page-head__sub">{{ dateLabel }}</p>
+    </div>
+    <button class="btn btn--quiet" type="button" (click)="loadDay()" [disabled]="loading()">
+      Actualizar
+    </button>
+  </header>
+
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading() && !summary()) {
+    <p class="empty">Cargando tu día…</p>
+  }
+
+  @if (summary(); as s) {
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Calorías</h2>
+        <span class="pill" [class.pill--ok]="s.inGreenMargin" [class.pill--warn]="!s.inGreenMargin">
+          {{ s.inGreenMargin ? 'Margen verde' : 'Fuera del margen' }}
+        </span>
+      </div>
+
+      <div class="kcal">
+        <span class="kcal__value num">{{ s.consumed.kcal }}</span>
+        <span class="kcal__target num">/ {{ s.targets.targetKcal }} kcal</span>
+      </div>
+
+      @if (kcalBar(); as bar) {
+        <div
+          class="track"
+          role="img"
+          [attr.aria-label]="
+            'Consumidas ' + s.consumed.kcal + ' de ' + s.targets.targetKcal + ' kcal'
+          "
+        >
+          <div class="track__band" [style.left.%]="bar.bandLeft" [style.width.%]="bar.bandWidth"></div>
+          <div class="track__fill" [style.width.%]="bar.fill"></div>
+          <div class="track__mark" [style.left.%]="bar.tmb" title="Piso vital (TMB)"></div>
+        </div>
+        <div class="legend tiny">
+          <span><i class="dot dot--amber"></i> Piso vital {{ s.targets.tmb }} kcal</span>
+          <span><i class="dot dot--band"></i> Margen verde {{ s.targets.minGreenKcal }}–{{ s.targets.maxGreenKcal }}</span>
+        </div>
+      }
+
+      @if (s.missingToTmb > 0) {
+        <p class="alert">
+          Te faltan {{ s.missingToTmb }} kcal para tu piso vital (TMB). Come algo con proteína para
+          cuidar el músculo.
+        </p>
+      }
+
+      <div class="row row--between small">
+        <span class="muted">Comida limpia</span>
+        <span class="strong num">{{ s.cleanEatingPct }}%</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Macros</h2>
+        <span class="card__hint">mín. proteína {{ s.targets.minGreenProtein }} g</span>
+      </div>
+
+      @if (macroBars(); as m) {
+        <div class="macro">
+          <div class="row row--between tiny">
+            <span>Proteína</span>
+            <span class="num">{{ m.protein.value }} / {{ m.protein.target }} g</span>
+          </div>
+          <div class="track track--thin">
+            <div class="track__fill" [style.width.%]="m.protein.percent"></div>
+            @if (m.protein.minGreenPercent !== null) {
+              <div class="track__mark" [style.left.%]="m.protein.minGreenPercent"></div>
+            }
+          </div>
+        </div>
+
+        <div class="macro">
+          <div class="row row--between tiny">
+            <span>Carbohidratos</span>
+            <span class="num">{{ m.carbs.value }} / {{ m.carbs.target }} g</span>
+          </div>
+          <div class="track track--thin">
+            <div class="track__fill" [style.width.%]="m.carbs.percent"></div>
+            <div class="track__mark" [style.left.%]="m.carbs.targetPercent"></div>
+          </div>
+        </div>
+
+        <div class="macro">
+          <div class="row row--between tiny">
+            <span>Grasas</span>
+            <span class="num">{{ m.fat.value }} / {{ m.fat.target }} g</span>
+          </div>
+          <div class="track track--thin">
+            <div class="track__fill" [style.width.%]="m.fat.percent"></div>
+            <div class="track__mark" [style.left.%]="m.fat.targetPercent"></div>
+          </div>
+        </div>
+      }
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Hidratación</h2>
+        <label class="switch">
+          <input
+            type="checkbox"
+            [checked]="s.isGymDay"
+            (change)="toggleGym($any($event.target).checked)"
+          />
+          <span>Día de gym</span>
+        </label>
+      </div>
+
+      <div class="row row--between">
+        <span class="num strong">{{ s.waterMl }} ml</span>
+        <span class="muted small num">meta {{ s.waterTargetMl }} ml</span>
+      </div>
+      <div class="track track--thin">
+        <div class="track__fill" [style.width.%]="waterPercent()"></div>
+      </div>
+
+      <div class="row">
+        <button class="btn btn--ghost grow" type="button" (click)="addWater(250)" [disabled]="busy()">
+          +250 ml
+        </button>
+        <button class="btn btn--ghost grow" type="button" (click)="addWater(500)" [disabled]="busy()">
+          +500 ml
+        </button>
+      </div>
+    </section>
+
+    <div class="stack-2">
+      <button class="btn btn--primary btn--block" type="button" (click)="openFoodSheet()" [disabled]="busy()">
+        + Agregar comida de mi báscula
+      </button>
+      <button class="btn btn--ghost btn--block" type="button" (click)="openOffPlan()" [disabled]="busy()">
+        + Antojo
+      </button>
+    </div>
+
+    @if (quickPlates().length) {
+      <section class="stack-2">
+        <div class="row row--between">
+          <h2 class="card__title">Platos rápidos</h2>
+          <span class="card__hint">1 toque</span>
+        </div>
+        <div class="scroll-x">
+          @for (plate of quickPlates(); track plate.id) {
+            <button class="plate" type="button" (click)="addQuickPlate(plate)" [disabled]="busy()">
+              <span class="plate__title">{{ plate.title }}</span>
+              <span class="plate__kcal num">{{ plate.kcal }} kcal</span>
+              <span class="plate__macros tiny num">
+                P {{ plate.protein }} · C {{ plate.carbs }} · G {{ plate.fat }}
+              </span>
+              @if (plate.subtitle) {
+                <span class="plate__sub tiny">{{ plate.subtitle }}</span>
+              }
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="stack-2">
+      <div class="row row--between">
+        <h2 class="card__title">Registrado hoy</h2>
+        <span class="card__hint">
+          {{ s.entries.length }} {{ s.entries.length === 1 ? 'entrada' : 'entradas' }}
+        </span>
+      </div>
+
+      @if (!s.entries.length) {
+        <p class="empty">Aún no registras nada. Empieza con tu báscula.</p>
+      }
+
+      @for (entry of s.entries; track trackEntry($index, entry)) {
+        <article class="entry" [class.entry--off]="entry.isOffPlan">
+          <div class="entry__main">
+            <p class="entry__name">{{ entry.entryName }}</p>
+            <p class="entry__meta tiny muted">
+              {{ entry.loggedTime }}
+              @if (entry.grams) {
+                · {{ entry.grams }} g
+              }
+              @if (entry.isOffPlan) {
+                · fuera de plan
+              }
+            </p>
+          </div>
+          <div class="entry__numbers">
+            <span class="num strong">{{ entry.kcal }}</span>
+            <span class="tiny muted num">P {{ entry.protein }}</span>
+          </div>
+          <button
+            class="entry__delete"
+            type="button"
+            (click)="deleteEntry(entry)"
+            [attr.aria-label]="'Eliminar ' + entry.entryName"
+          >
+            ✕
+          </button>
+        </article>
+      }
+    </section>
+  }
+</main>
+
+<app-sheet [open]="sheet() === 'food'" title="Elegir alimento" (closed)="closeSheet()">
+  <input
+    class="input"
+    type="search"
+    placeholder="Buscar alimento…"
+    [value]="foodQuery()"
+    (input)="onQueryInput($event)"
+  />
+
+  <button class="btn btn--quiet" type="button" (click)="toggleNewFood()">
+    {{ showNewFood() ? 'Cancelar' : '+ Crear alimento nuevo' }}
+  </button>
+
+  @if (showNewFood()) {
+    <div class="card card--tight">
+      <div class="field">
+        <span class="field__label">Nombre</span>
+        <input class="input" [value]="newFoodName()" (input)="newFoodName.set($any($event.target).value)" />
+      </div>
+      <div class="field">
+        <span class="field__label">Estado</span>
+        <select class="input" [value]="newFoodState()" (change)="setNewFoodState($any($event.target).value)">
+          @for (tag of stateTags; track tag) {
+            <option [value]="tag">{{ tag }}</option>
+          }
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <span class="field__label">kcal /100 g</span>
+          <input class="input" inputmode="decimal" [value]="newFoodKcal()" (input)="newFoodKcal.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <span class="field__label">Proteína /100 g</span>
+          <input class="input" inputmode="decimal" [value]="newFoodProtein()" (input)="newFoodProtein.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <span class="field__label">Carbos /100 g</span>
+          <input class="input" inputmode="decimal" [value]="newFoodCarbs()" (input)="newFoodCarbs.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <span class="field__label">Grasa /100 g</span>
+          <input class="input" inputmode="decimal" [value]="newFoodFat()" (input)="newFoodFat.set($any($event.target).value)" />
+        </div>
+      </div>
+      <button class="btn btn--primary" type="button" (click)="createFood()" [disabled]="creatingFood()">
+        Guardar alimento
+      </button>
+    </div>
+  }
+
+  @if (searching()) {
+    <p class="empty">Buscando…</p>
+  }
+
+  @for (food of foods(); track food.id) {
+    <button class="food" type="button" (click)="selectFood(food)">
+      <span class="food__main">
+        <span class="food__name">{{ food.name }}</span>
+        <span class="food__meta tiny muted">
+          {{ food.stateTag }} · {{ food.kcalPer100g }} kcal/100 g
+          @if (food.userId !== null) {
+            · mío
+          }
+        </span>
+      </span>
+      <span class="food__macro tiny num">P {{ food.proteinPer100g }} g</span>
+    </button>
+  }
+
+  @if (!searching() && !foods().length) {
+    <p class="empty">Sin resultados. Crea el alimento o cambia la búsqueda.</p>
+  }
+</app-sheet>
+
+<app-sheet [open]="sheet() === 'grams'" [title]="selectedFood()?.name ?? 'Gramos'" (closed)="closeSheet()">
+  @if (selectedFood(); as food) {
+    <p class="muted small">
+      {{ food.stateTag }} · {{ food.kcalPer100g }} kcal por 100 g
+    </p>
+
+    <div class="field">
+      <span class="field__label">Gramos en la báscula</span>
+      <input
+        class="input input--big"
+        inputmode="decimal"
+        [value]="grams()"
+        (input)="onGramsInput($event)"
+      />
+    </div>
+
+    <div class="row">
+      @for (option of quickGramOptions; track option) {
+        <button class="btn btn--ghost grow" type="button" (click)="setGrams(option)">
+          {{ option }}g
+        </button>
+      }
+    </div>
+
+    @if (gramsPreview(); as preview) {
+      <div class="preview">
+        <span class="preview__kcal num">{{ preview.kcal }} kcal</span>
+        <span class="tiny muted num">
+          P {{ preview.protein }} · C {{ preview.carbs }} · G {{ preview.fat }}
+        </span>
+      </div>
+    }
+
+    <button class="btn btn--primary btn--block" type="button" (click)="saveGrams()" [disabled]="busy()">
+      Guardar comida
+    </button>
+    <button class="btn btn--quiet" type="button" (click)="backToFoods()">Cambiar alimento</button>
+  }
+</app-sheet>
+
+<app-sheet [open]="sheet() === 'offplan'" title="Antojo" (closed)="closeSheet()">
+  <p class="muted small">
+    Se registra fuera de plan: cuenta calorías pero baja tu porcentaje de comida limpia.
+  </p>
+
+  <div class="field">
+    <span class="field__label">¿Qué comiste?</span>
+    <input class="input" [value]="offLabel()" (input)="offLabel.set($any($event.target).value)" placeholder="Tacos al pastor" />
+  </div>
+
+  <div class="field">
+    <span class="field__label">Calorías</span>
+    <input class="input" inputmode="numeric" [value]="offKcal()" (input)="offKcal.set($any($event.target).value)" placeholder="350" />
+  </div>
+
+  <button class="btn btn--primary btn--block" type="button" (click)="saveOffPlan()" [disabled]="busy()">
+    Registrar antojo
+  </button>
+</app-sheet>

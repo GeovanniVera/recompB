@@ -1,0 +1,168 @@
+<main class="app-shell">
+  <header class="page-head">
+    <div>
+      <h1 class="page-head__title">Mi Plan</h1>
+      <p class="page-head__sub">Tus números, explicados</p>
+    </div>
+    @if (saving()) {
+      <span class="pill">Guardando…</span>
+    } @else if (savedAt()) {
+      <span class="pill pill--ok">Guardado {{ savedAt() }}</span>
+    }
+  </header>
+
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading() && !profile()) {
+    <p class="empty">Cargando tu plan…</p>
+  }
+
+  @if (profile(); as p) {
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Datos base</h2>
+        <span class="card__hint">se recalculan al instante</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <span class="field__label">Edad</span>
+          <input
+            class="input"
+            inputmode="numeric"
+            [value]="age()"
+            (input)="age.set($any($event.target).value); onFieldChange()"
+          />
+        </div>
+        <div class="field">
+          <span class="field__label">Estatura (cm)</span>
+          <input
+            class="input"
+            inputmode="decimal"
+            [value]="height()"
+            (input)="height.set($any($event.target).value); onFieldChange()"
+          />
+        </div>
+        <div class="field">
+          <span class="field__label">Peso (kg)</span>
+          <input
+            class="input"
+            inputmode="decimal"
+            [value]="weight()"
+            (input)="weight.set($any($event.target).value); onFieldChange()"
+          />
+        </div>
+        <div class="field">
+          <span class="field__label">Días de gym</span>
+          <input
+            class="input"
+            inputmode="numeric"
+            [value]="gymDays()"
+            (input)="gymDays.set($any($event.target).value); onFieldChange()"
+          />
+        </div>
+      </div>
+
+      <p class="tiny muted">
+        Sexo: {{ p.sex === 'MALE' ? 'hombre' : 'mujer' }} · déficit {{ (p.deficitPct * 100).toFixed(0) }}% ·
+        proteína {{ p.proteinPerKg }} g/kg · grasa {{ p.fatPerKg }} g/kg
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Metas de hoy</h2>
+        <span class="card__hint">calculadas</span>
+      </div>
+
+      <div class="targets">
+        <div class="target">
+          <span class="target__label">TMB</span>
+          <span class="target__value num">{{ p.targets.tmb }}</span>
+        </div>
+        <div class="target">
+          <span class="target__label">TDEE</span>
+          <span class="target__value num">{{ p.targets.tdee }}</span>
+        </div>
+        <div class="target target--main">
+          <span class="target__label">Meta</span>
+          <span class="target__value num">{{ p.targets.targetKcal }} kcal</span>
+        </div>
+      </div>
+
+      <div class="macros">
+        <div class="macro-item">
+          <span class="tiny muted">Proteína</span>
+          <span class="num">{{ p.targets.proteinGrams }} g</span>
+        </div>
+        <div class="macro-item">
+          <span class="tiny muted">Carbos</span>
+          <span class="num">{{ p.targets.carbsGrams }} g</span>
+        </div>
+        <div class="macro-item">
+          <span class="tiny muted">Grasas</span>
+          <span class="num">{{ p.targets.fatGrams }} g</span>
+        </div>
+      </div>
+
+      <p class="tiny muted num">
+        Margen verde {{ p.targets.minGreenKcal }}–{{ p.targets.maxGreenKcal }} kcal · mínimo proteína
+        {{ p.targets.minGreenProtein }} g
+      </p>
+      <p class="tiny muted num">
+        Agua: {{ p.targets.waterRestMl }} ml en descanso · {{ p.targets.waterGymMl }} ml en día de gym
+      </p>
+    </section>
+  }
+
+  <section class="stack-2">
+    <h2 class="card__title">Qué significa cada número</h2>
+
+    @for (section of sections; track section.id) {
+      <article class="accordion" [class.accordion--open]="openSection() === section.id">
+        <button class="accordion__head" type="button" (click)="toggleSection(section.id)">
+          <span>{{ section.title }}</span>
+          <span class="accordion__chevron">{{ openSection() === section.id ? '−' : '+' }}</span>
+        </button>
+        @if (openSection() === section.id) {
+          <p class="accordion__body">{{ section.body }}</p>
+        }
+      </article>
+    }
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <h2 class="card__title">Tema</h2>
+      <span class="card__hint">se guarda en este dispositivo</span>
+    </div>
+
+    <div class="theme-options">
+      @for (option of themes; track option.id) {
+        <button
+          class="theme-option"
+          type="button"
+          [class.is-active]="theme() === option.id"
+          [attr.aria-pressed]="theme() === option.id"
+          (click)="setTheme(option.id)"
+        >
+          <span
+            class="theme-swatch"
+            [class.swatch-graphite]="option.id === 'graphite'"
+            [class.swatch-spruce]="option.id === 'spruce'"
+            aria-hidden="true"
+          >
+            <span></span><span></span><span></span>
+          </span>
+          <span class="theme-option__label">{{ option.label }}</span>
+          <span class="theme-option__hint">{{ option.description }}</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <button class="btn btn--ghost btn--block" type="button" (click)="logout()">Cerrar sesión</button>
+  <p class="tiny muted" style="text-align: center">Recomp3B · v1</p>
+</main>

@@ -1,0 +1,98 @@
+<main class="auth-shell">
+  <section class="auth-card" aria-labelledby="login-title">
+    <header class="brand">
+      <img class="brand__logo" src="icon.svg" alt="" width="40" height="40" />
+      <div>
+        <p class="brand__eyebrow">Recomp3B</p>
+        <h1 id="login-title" class="brand__title">
+          @if (step() === 'email') {
+            Entra sin contraseña
+          } @else {
+            Escribe tu código
+          }
+        </h1>
+      </div>
+    </header>
+
+    @if (step() === 'email') {
+      <p class="hint">
+        Escribe tu correo. Te mandamos un código de un solo uso a tu Telegram vinculado.
+      </p>
+
+      <form [formGroup]="emailForm" (ngSubmit)="submitEmail()" novalidate>
+        <label class="field">
+          <span class="field__label">Correo</span>
+          <input
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="tu@correo.com"
+            [attr.aria-invalid]="emailForm.controls.email.touched && emailForm.controls.email.invalid"
+          />
+          @if (emailForm.controls.email.touched && emailForm.controls.email.invalid) {
+            <span class="field__error">Escribe un correo válido.</span>
+          }
+        </label>
+
+        <button class="btn btn--primary" type="submit" [disabled]="busy()">
+          {{ busy() ? 'Mandando…' : 'Mandar código' }}
+        </button>
+      </form>
+    } @else {
+      <p class="hint">
+        Te mandamos un código de 6 dígitos al Telegram vinculado a
+        <strong>{{ sentEmail() }}</strong>.
+      </p>
+
+      <form [formGroup]="codeForm" (ngSubmit)="submitCode()" novalidate>
+        <label class="field">
+          <span class="field__label">Código de verificación</span>
+          <input
+            class="field__code"
+            type="text"
+            inputmode="numeric"
+            formControlName="code"
+            maxlength="6"
+            autocomplete="one-time-code"
+            placeholder="000000"
+            [attr.aria-invalid]="codeForm.controls.code.touched && codeForm.controls.code.invalid"
+          />
+          @if (codeForm.controls.code.touched && codeForm.controls.code.invalid) {
+            <span class="field__error">El código debe tener exactamente 6 dígitos.</span>
+          }
+        </label>
+
+        <button class="btn btn--primary" type="submit" [disabled]="busy()">
+          {{ busy() ? 'Verificando…' : 'Verificar y entrar' }}
+        </button>
+
+        <div class="actions">
+          <button class="btn btn--ghost" type="button" (click)="changeEmail()" [disabled]="busy()">
+            Usar otro correo
+          </button>
+          <button
+            class="btn btn--ghost"
+            type="button"
+            (click)="resend()"
+            [disabled]="busy() || secondsLeft() > 0"
+          >
+            @if (secondsLeft() > 0) {
+              Reenviar en {{ secondsLeft() }}s
+            } @else {
+              Reenviar código
+            }
+          </button>
+        </div>
+      </form>
+    }
+
+    @if (notice()) {
+      <p class="feedback feedback--info" role="status">{{ notice() }}</p>
+    }
+    @if (error()) {
+      <p class="feedback feedback--error" role="alert">{{ error() }}</p>
+    }
+  </section>
+
+  <p class="footnote">Fase 1 · Acceso con código por Telegram</p>
+</main>

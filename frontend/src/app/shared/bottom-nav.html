@@ -1,0 +1,25 @@
+<nav class="tabs" aria-label="Navegación principal">
+  @for (tab of tabs; track tab.path) {
+    <a
+      class="tab"
+      [routerLink]="tab.path"
+      routerLinkActive="is-active"
+      #active="routerLinkActive"
+      [attr.aria-current]="active.isActive ? 'page' : null"
+    >
+      <svg
+        class="tab__icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path [attr.d]="tab.icon" />
+      </svg>
+      <span class="tab__label">{{ tab.label }}</span>
+    </a>
+  }
+</nav>

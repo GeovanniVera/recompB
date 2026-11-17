@@ -1,0 +1,240 @@
+:host {
+  display: block;
+}
+
+.kcal {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.kcal__value {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.kcal__target {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  color: var(--text-secondary);
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.3rem;
+}
+
+.dot--amber {
+  background: var(--accent-alert);
+}
+
+.dot--band {
+  background: var(--band-border);
+}
+
+.track--thin {
+  height: 7px;
+}
+
+.macro {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.switch input {
+  appearance: none;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--track-bg);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.switch input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform 140ms ease, background-color 140ms ease;
+}
+
+.switch input:checked {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary-hover);
+}
+
+.switch input:checked::after {
+  transform: translateX(14px);
+  background: var(--on-accent);
+}
+
+.plate {
+  scroll-snap-align: start;
+  flex: 0 0 9.5rem;
+  min-height: 6.5rem;
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+  text-align: left;
+  padding: 0.8rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  cursor: pointer;
+}
+
+.plate:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+}
+
+.plate:disabled {
+  opacity: 0.55;
+}
+
+.plate__title {
+  font-weight: 600;
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.plate__kcal {
+  color: var(--accent-text);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.plate__macros {
+  color: var(--text-secondary);
+}
+
+.plate__sub {
+  color: var(--text-secondary);
+  line-height: 1.25;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.entry--off {
+  border-color: var(--accent-alert-border);
+}
+
+.entry__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.entry__numbers {
+  display: grid;
+  justify-items: end;
+  gap: 0.1rem;
+}
+
+.entry__delete {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.entry__delete:hover {
+  background: var(--accent-alert-soft);
+  color: var(--accent-alert-ink);
+}
+
+.food {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card-alt);
+  cursor: pointer;
+}
+
+.food:hover {
+  border-color: var(--accent-primary);
+}
+
+.food__main {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.food__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.food__macro {
+  color: var(--accent-text);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.input--big {
+  font-size: 1.6rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.preview {
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  padding: 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+}
+
+.preview__kcal {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent-text);
+}

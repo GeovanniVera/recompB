@@ -1,0 +1,20 @@
+{
+  "name": "Recomp3B",
+  "short_name": "Recomp3B",
+  "description": "Recomposición corporal y control nutricional con báscula",
+  "lang": "es-MX",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#141615",
+  "theme_color": "#141615",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+@if (open()) {
+  <div class="backdrop" (click)="closed.emit()" aria-hidden="true"></div>
+  <section class="sheet" role="dialog" aria-modal="true" [attr.aria-label]="title()">
+    <header class="sheet__head">
+      <h2 class="sheet__title">{{ title() }}</h2>
+      <button type="button" class="sheet__close" (click)="closed.emit()" aria-label="Cerrar">✕</button>
+    </header>
+    <div class="sheet__body">
+      <ng-content />
+    </div>
+  </section>
+}

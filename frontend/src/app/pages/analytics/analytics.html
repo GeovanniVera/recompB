@@ -1,0 +1,252 @@
+<main class="app-shell">
+  <header class="page-head">
+    <div>
+      <h1 class="page-head__title">14 Días</h1>
+      <p class="page-head__sub">
+        {{ formatDate(data()?.startDate ?? today) }} – {{ formatDate(data()?.endDate ?? today) }}
+      </p>
+    </div>
+    <button class="btn btn--quiet" type="button" (click)="load()" [disabled]="loading()">
+      Actualizar
+    </button>
+  </header>
+
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
+  }
+
+  <div class="segmented" role="tablist" aria-label="Vistas de análisis">
+    @for (option of views; track option.id) {
+      <button
+        class="segmented__item"
+        type="button"
+        role="tab"
+        [class.is-active]="view() === option.id"
+        [attr.aria-selected]="view() === option.id"
+        (click)="setView(option.id)"
+      >
+        {{ option.label }}
+      </button>
+    }
+  </div>
+
+  @if (view() === 'fortnight') {
+    @if (loading() && !data()) {
+      <p class="empty">Cargando métricas…</p>
+    }
+
+    @if (data(); as d) {
+      <section class="kpis">
+        @for (kpi of kpis(); track kpi.label) {
+          <article class="kpi">
+            <span class="kpi__value num">{{ kpi.value }}</span>
+            <span class="kpi__label">{{ kpi.label }}</span>
+            <span class="kpi__hint tiny">{{ kpi.hint }}</span>
+          </article>
+        }
+      </section>
+
+      <section class="card">
+        <div class="card__head">
+          <h2 class="card__title">Últimos 14 días</h2>
+          <span class="card__hint">kcal por día</span>
+        </div>
+
+        <div class="chart">
+          @if (targetLine(); as line) {
+            <div class="chart__target" [style.bottom.%]="line"><span class="tiny">meta</span></div>
+          }
+          @for (point of d.points; track point.date) {
+            <div class="chart__col">
+              <div class="chart__bar-wrap">
+                <div
+                  [class]="barClass(point)"
+                  [style.height.%]="barPercent(point)"
+                  [attr.title]="point.dayLabel + ': ' + point.kcal + ' kcal'"
+                  [attr.aria-label]="point.dayLabel + ': ' + point.kcal + ' kcal'"
+                ></div>
+              </div>
+              <span class="chart__label tiny num">{{ point.dayLabel }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="legend tiny">
+          <span><i class="dot dot--green"></i> día verde</span>
+          <span><i class="dot dot--amber"></i> fuera de margen</span>
+          <span><i class="dot dot--line"></i> meta</span>
+        </div>
+      </section>
+    }
+  }
+
+  @if (view() === 'weeks') {
+    @if (data(); as d) {
+      <section class="card">
+        <div class="card__head">
+          <h2 class="card__title">Semana 1 vs Semana 2</h2>
+          <span class="card__hint">D1–D7 contra D8–D14</span>
+        </div>
+
+        <div class="weeks">
+          <div class="week">
+            <p class="week__title">Semana 1</p>
+            <p class="tiny muted">
+              {{ formatDate(d.previousWeek.startDate) }} – {{ formatDate(d.previousWeek.endDate) }}
+            </p>
+            <p class="week__kcal num">{{ d.previousWeek.avgKcal }} kcal/día</p>
+            <p class="tiny muted num">P {{ d.previousWeek.avgProtein }} g · verde {{ d.previousWeek.greenDaysPct }}%</p>
+          </div>
+          <div class="week">
+            <p class="week__title">Semana 2</p>
+            <p class="tiny muted">
+              {{ formatDate(d.currentWeek.startDate) }} – {{ formatDate(d.currentWeek.endDate) }}
+            </p>
+            <p class="week__kcal num">{{ d.currentWeek.avgKcal }} kcal/día</p>
+            <p class="tiny muted num">P {{ d.currentWeek.avgProtein }} g · verde {{ d.currentWeek.greenDaysPct }}%</p>
+          </div>
+        </div>
+
+        <app-delta-list [deltas]="d.deltas" />
+      </section>
+    }
+  }
+
+  @if (view() === 'custom') {
+    <section class="card">
+      <div class="field">
+        <span class="field__label">Inicio de la semana base</span>
+        <input class="input" type="date" [value]="baseStart()" (change)="onBaseStart($event)" />
+      </div>
+      <p class="tiny muted">
+        Se comparan 7 días desde esa fecha contra los últimos 7 días
+        ({{ formatDate(currentStart) }} – {{ formatDate(today) }}).
+      </p>
+    </section>
+
+    @if (loadingComparison()) {
+      <p class="empty">Comparando…</p>
+    }
+
+    @if (comparison(); as c) {
+      <section class="card">
+        <div class="weeks">
+          <div class="week">
+            <p class="week__title">Base</p>
+            <p class="tiny muted">{{ formatDate(c.base.stats.startDate) }} – {{ formatDate(c.base.stats.endDate) }}</p>
+            <p class="week__kcal num">{{ c.base.stats.avgKcal }} kcal/día</p>
+            <p class="tiny muted num">P {{ c.base.stats.avgProtein }} g · verde {{ c.base.stats.greenDaysPct }}%</p>
+            @if (c.base.checkIn) {
+              <p class="tiny muted">{{ c.base.checkIn.weightKg }} kg</p>
+            }
+          </div>
+          <div class="week">
+            <p class="week__title">Actual</p>
+            <p class="tiny muted">{{ formatDate(c.current.stats.startDate) }} – {{ formatDate(c.current.stats.endDate) }}</p>
+            <p class="week__kcal num">{{ c.current.stats.avgKcal }} kcal/día</p>
+            <p class="tiny muted num">P {{ c.current.stats.avgProtein }} g · verde {{ c.current.stats.greenDaysPct }}%</p>
+            @if (c.current.checkIn) {
+              <p class="tiny muted">{{ c.current.checkIn.weightKg }} kg</p>
+            }
+          </div>
+        </div>
+
+        <app-delta-list [deltas]="c.deltas" />
+      </section>
+    }
+  }
+
+  <section class="card">
+    <div class="card__head">
+      <h2 class="card__title">Marca quincenal</h2>
+      <span class="card__hint">en ayunas</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <span class="field__label">Peso (kg)</span>
+        <input
+          class="input"
+          inputmode="decimal"
+          placeholder="70.0"
+          [value]="weight()"
+          (input)="weight.set($any($event.target).value)"
+        />
+      </div>
+      <div class="field">
+        <span class="field__label">Cintura (cm)</span>
+        <input
+          class="input"
+          inputmode="decimal"
+          placeholder="80.0"
+          [value]="waist()"
+          (input)="waist.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field__label">Nota (opcional)</span>
+      <input
+        class="input"
+        placeholder="Cómo te sentiste"
+        [value]="note()"
+        (input)="note.set($any($event.target).value)"
+      />
+    </div>
+
+    <button class="btn btn--primary btn--block" type="button" (click)="submitCheckIn()" [disabled]="saving()">
+      {{ saving() ? 'Guardando…' : 'Guardar marca' }}
+    </button>
+
+    @if (result(); as r) {
+      @if (r.adjustmentSuggested) {
+        <div class="result">
+          <p class="alert">{{ r.message }}</p>
+          <button
+            class="btn btn--ghost btn--block"
+            type="button"
+            (click)="applyDeficit()"
+            [disabled]="applyingDeficit() || deficitApplied()"
+          >
+            {{ deficitApplied() ? 'Déficit actualizado a 14%' : 'Aplicar déficit 14%' }}
+          </button>
+        </div>
+      } @else {
+        <p class="tiny muted">
+          Sin ajuste sugerido: el plan sigue igual. Los porcentajes se calcularon solos desde tus
+          últimos 14 días.
+        </p>
+      }
+    }
+  </section>
+
+  <section class="stack-2">
+    <div class="row row--between">
+      <h2 class="card__title">Historial</h2>
+      <span class="card__hint">{{ checkIns().length }} marcas</span>
+    </div>
+
+    @if (!checkIns().length) {
+      <p class="empty">Aún no tienes marcas quincenales.</p>
+    }
+
+    @for (checkIn of checkIns(); track checkIn.id) {
+      <article class="checkin">
+        <div class="row row--between">
+          <span class="checkin__date">{{ formatDateLong(checkIn.checkinDate) }}</span>
+          <span class="checkin__weight num">{{ checkIn.weightKg }} kg</span>
+        </div>
+        <p class="tiny muted num">
+          @if (checkIn.waistCm !== null) {
+            cintura {{ checkIn.waistCm }} cm ·
+          }
+          verde {{ checkIn.greenDaysPct ?? 0 }}% · limpieza {{ checkIn.cleanEatingPct ?? 0 }}%
+        </p>
+        @if (checkIn.note) {
+          <p class="tiny">{{ checkIn.note }}</p>
+        }
+      </article>
+    }
+  </section>
+</main>

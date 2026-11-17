@@ -1,0 +1,48 @@
+:host {
+  display: block;
+}
+
+.deltas {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.delta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.delta:last-child {
+  border-bottom: 0;
+}
+
+.delta__label {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.delta__value {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.delta__value--up {
+  color: var(--accent-alert-ink);
+}
+
+.delta__value--down {
+  color: var(--accent-text);
+}
+
+.delta__value--flat {
+  color: var(--text-secondary);
+}
+
+.delta__unit {
+  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}

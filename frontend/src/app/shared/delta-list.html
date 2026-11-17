@@ -1,0 +1,10 @@
+<div class="deltas">
+  @for (row of rows(); track row.label) {
+    <div class="delta">
+      <span class="delta__label">{{ row.label }}</span>
+      <span [class]="'delta__value num delta__value--' + sign(row.value)">
+        {{ text(row.value) }} <span class="delta__unit">{{ row.unit }}</span>
+      </span>
+    </div>
+  }
+</div>
